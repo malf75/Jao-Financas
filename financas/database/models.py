@@ -12,8 +12,8 @@ class Usuario(SQLModel, table=True):
     saldo_usuario: float = Field(default=0.0)
     criado_em: datetime = Field(default_factory=datetime.now)
     ativo: bool = Field(default=True)
-    transacoes: List['Transacao'] = Relationship(back_populates="usuarios", cascade_delete=True)
-    conta_bancaria: List['ContaBancaria'] = Relationship(back_populates="usuarios", cascade_delete=True)
+    transacoes: List['Transacao'] = Relationship(back_populates="usuario", cascade_delete=True)
+    conta_bancaria: List['ContaBancaria'] = Relationship(back_populates="usuario", cascade_delete=True)
 
 class ContaBancaria(SQLModel, table=True):
     __tablename__ = 'conta_bancaria'
@@ -32,8 +32,8 @@ class Transacao(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True, index=True)
     usuario_id: int = Field(foreign_key="usuarios.id")
     conta_bancaria_id: Optional[int] = Field(default=None, foreign_key="conta_bancaria.id")
-    conta_bancaria: Optional[ContaBancaria] = Relationship(back_populates="transacao")
-    usuario: Usuario = Relationship(back_populates="transacao")
+    conta_bancaria: Optional[ContaBancaria] = Relationship(back_populates="transacoes")
+    usuario: Usuario = Relationship(back_populates="transacoes")
     valor: float = Field()
     tipo: str = Field(max_length=10)
     categoria: str = Field(max_length=50)
