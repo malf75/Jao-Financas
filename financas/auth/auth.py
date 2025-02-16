@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
-from database. import get_db
+from database.db import get_db
 from database.models import Usuario
 from passlib.context import CryptContext
 from jose import jwt, JWTError

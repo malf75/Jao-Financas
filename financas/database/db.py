@@ -17,4 +17,4 @@ def select_usuario(db: Session, email: str):
     with db:
         statement = select(Usuario).where(Usuario.email == email)
         results = db.exec(statement).first()
-        return results.nome
+        return {"nome": results.nome, "email": results.email, "saldo": results.saldo_usuario, "contas": results.conta_bancaria, "status": results.ativo}
