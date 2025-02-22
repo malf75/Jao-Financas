@@ -1,7 +1,7 @@
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlmodel import Session, select
 from starlette import status
 from database.db import get_db
 from database.models import Usuario
@@ -17,9 +17,10 @@ router = APIRouter(
 )
 
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
-oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/token')
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/login')
 
 class CreateUserRequest(BaseModel):
+    nome: str
     email: str
     password: str
 
@@ -29,25 +30,27 @@ class Token(BaseModel):
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("/create_user", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependency,
                       create_user_request: CreateUserRequest):
     create_user_model = Usuario(
+        nome=create_user_request.nome,
         email=create_user_request.email,
-        password=bcrypt_context.hash(create_user_request.password)
+        senha=bcrypt_context.hash(create_user_request.password)
     )
-    test_email = db.query(Usuario).filter(Usuario.email == create_user_model.email).first()
-    if test_email:
+    query = select(Usuario).where(Usuario.email == create_user_model.email)
+    consulta = db.exec(query).first()
+    if consulta:
         raise HTTPException(status_code=400, detail="Usuário Já Existente")
     else:
         db.add(create_user_model)
         db.commit()
         return {"201": "Usuário Criado"}
 
-@router.post("/token", response_model=Token)
+@router.post("/login", response_model=Token)
 async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
                                  db: db_dependency):
-    user = authenticate_user(form_data.email, form_data.password, db)
+    user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Credenciais incorretas")
@@ -56,12 +59,13 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     return {"access_token": token, "token_type": "bearer"}
 
 def authenticate_user(email: str, password: str, db):
-    user = db.query(Usuario).filter(Usuario.email == email).first()
-    if not user:
+    user = select(Usuario).where(Usuario.email == email)
+    query = db.exec(user).first()
+    if not query:
         return False
-    if not bcrypt_context.verify(password, user.password):
+    if not bcrypt_context.verify(password, query.senha):
         return False
-    return user
+    return query
 
 def create_access_token(email: str, user_id: int, expires_delta: timedelta):
     encode = {"sub": email, "id": user_id}

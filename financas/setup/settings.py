@@ -9,7 +9,7 @@ app = FastAPI()
 SECRET_KEY = str(os.getenv('SECRET_KEY'))
 DATABASE_URL = str(os.getenv('DATABASE_URL'))
 ALGORITHM = 'HS256'
-ACCESS_TOKEN_EXPIRE_HOURS = 24
+ACCESS_TOKEN_EXPIRE_HOURS = 360
 
 origins = [
     "*"

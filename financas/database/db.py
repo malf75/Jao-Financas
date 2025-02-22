@@ -7,11 +7,8 @@ engine = create_engine(f"{DATABASE_URL}", echo=True)
 SessionLocal = Session(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    with Session(engine) as session:
+        yield session
 
 def select_usuario(db: Session, email: str):
     with db:

@@ -8,7 +8,7 @@ class Usuario(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True, index=True)
     nome: str = Field(max_length=100)
     email: str = Field(max_length=50)
-    senha: str = Field(max_length=30)
+    senha: str = Field()
     saldo_usuario: float = Field(default=0.0)
     criado_em: datetime = Field(default_factory=datetime.now)
     ativo: bool = Field(default=True)
@@ -35,6 +35,19 @@ class Transacao(SQLModel, table=True):
     conta_bancaria: Optional[ContaBancaria] = Relationship(back_populates="transacoes")
     usuario: Usuario = Relationship(back_populates="transacoes")
     valor: float = Field()
-    tipo: str = Field(max_length=10)
-    categoria: str = Field(max_length=50)
     data: datetime = Field(default_factory=datetime.now)
+    categoria_id: int = Field(foreign_key="categoria.id")
+    tipo_id: int = Field(foreign_key="tipo.id")
+
+class Tipo(SQLModel, table=True):
+    __tablename__ = 'tipo'
+
+    id: int | None = Field(default=None, primary_key=True, index=True)
+    tipo: str = Field(nullable=False)
+
+class Categoria(SQLModel, table=True):
+    __tablename__ = 'categoria'
+
+    id: int | None = Field(default=None, primary_key=True, index=True)
+    usuario_id: int = Field(foreign_key="usuarios.id")
+    categoria: str = Field(nullable=False)
