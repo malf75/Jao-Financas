@@ -12,7 +12,7 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 db = Annotated[Session, Depends(get_db)]
 
 @app.get("/")
-async def redirect_index():
+def redirect_index():
     return RedirectResponse("/docs")
 
 @app.get("/dashboard")
@@ -26,5 +26,5 @@ async def conta_bancaria(user: user_dependency, db: Session = Depends(get_db)):
 
 @app.post("/contabancaria/criaconta")
 async def cria_conta(nome: str, saldo_conta: float, user: user_dependency, db: Session = Depends(get_db)):
-    result = cria_conta_usuario(nome, saldo_conta, user, db)
+    result = await cria_conta_usuario(nome, saldo_conta, user, db)
     return result

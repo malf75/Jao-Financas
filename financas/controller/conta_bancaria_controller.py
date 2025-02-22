@@ -3,7 +3,7 @@ from database.models import ContaBancaria, Usuario
 from fastapi import HTTPException
 
 
-def retorna_contas_usuario(user, db: Session):
+async def retorna_contas_usuario(user, db: Session):
     query = select(ContaBancaria).where(ContaBancaria.usuario_id == user['id'])
     print(query)
     results = db.exec(query).all()
@@ -11,7 +11,7 @@ def retorna_contas_usuario(user, db: Session):
         raise HTTPException(status_code=404, detail="Usuário não possui contas bancárias")
     return results
 
-def cria_conta_usuario(nome, saldo_conta, user, db: Session):
+async def cria_conta_usuario(nome, saldo_conta, user, db: Session):
     cria_conta = ContaBancaria(
         usuario_id=user['id'],
         nome=nome,
