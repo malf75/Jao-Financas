@@ -30,7 +30,7 @@ class Token(BaseModel):
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
-@router.post("/create_user", status_code=status.HTTP_201_CREATED)
+@router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependency,
                       create_user_request: CreateUserRequest):
     create_user_model = Usuario(
