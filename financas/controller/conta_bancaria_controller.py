@@ -1,5 +1,5 @@
 from sqlmodel import select, Session
-from database.models import ContaBancaria
+from database.models import ContaBancaria, Usuario
 from fastapi import HTTPException
 
 
@@ -23,5 +23,9 @@ def cria_conta_usuario(nome, saldo_conta, user, db: Session):
         raise HTTPException(status_code=400, detail="Conta Bancária Já Registrada")
     else:
         db.add(cria_conta)
+        db.commit()
+        query = select(Usuario).where(Usuario.id == user['id'])
+        usuario = db.exec(query).first()
+        usuario.saldo_usuario += saldo_conta
         db.commit()
         return {"201": "Conta Criada"}
