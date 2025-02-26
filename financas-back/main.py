@@ -34,3 +34,23 @@ async def rota_cria_conta(nome: str, saldo_conta: float, user: user_dependency, 
 async def rota_cria_transacao(valor: float, tipo: int, categoria: str, user: user_dependency, db: Session = Depends(get_db), conta: int | None = None):
     result = await cria_transacao(valor, tipo, categoria, user, db, conta)
     return result
+
+"""criar a rota GET(“/categorias”)
+criar a rota GET(“/transacoes/receitas”)
+criar a rota GET(“/transacoes/despesas”)
+"""
+
+@app.get("/categorias")
+async def rota_categorias(user: user_dependency, db: Session = Depends(get_db)):
+    result = await retorna_categorias(user, db)
+    return result
+
+@app.get("/transacoes/receitas")
+async def rota_receitas(user: user_dependency, db: Session = Depends(get_db)):
+    result = await retorna_receitas(user, db)
+    return result
+
+@app.get("/transacoes/despesas")
+async def rota_despesas(user: user_dependency, db: Session = Depends(get_db)):
+    result = await retorna_despesas(user, db)
+    return result
