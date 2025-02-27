@@ -53,22 +53,9 @@ async def cria_transacao(valor, tipo, categoria, user, db:Session, conta):
 
     return {"201": "Transação criada com sucesso!"}
 
-async def retorna_categorias(user: dict, db: Session):
-    """
-    Retorna todas as categorias do usuario autenticado.
-    """
 
-    query = select(Categoria).where(Categoria.usuario_id == ['id'])
-    categorias = db.exec(query).all()
-    if not categorias:
-        raise HTTPException(status_code=404, detail="Nenhuma categoria encontrada")
-    return categorias
+async def retorna_receitas(user, db:Session):
 
-
-async def retorna_receitas(user: dict, db:Session):
-    """
-    Retorna todas as transações de receita do usuário autenticado.
-    """
     query = select(Transacao).where(Transacao.usuario_id == user['id'], Transacao.tipo_id == 1)
     receitas = db.exec(query).all()
     if not receitas:
@@ -76,10 +63,8 @@ async def retorna_receitas(user: dict, db:Session):
     return receitas
 
 
-async def retorna_despesas(user: dict, db: Session):
-    """
-    Retorna todas as transações de despesa do usuário autenticado.
-    """
+async def retorna_despesas(user, db: Session):
+
     query = select(Transacao).where(Transacao.usuario_id == user['id'], Transacao.tipo_id == 2)
     despesas = db.exec(query).all()
     if not despesas:

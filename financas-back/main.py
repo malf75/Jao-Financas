@@ -5,6 +5,7 @@ from typing import Annotated
 from database.db import get_db
 from controller.conta_bancaria_controller import *
 from controller.transacao_controller import *
+from controller.categoria_controller import *
 from sqlmodel import Session
 from fastapi import Depends
 
@@ -34,11 +35,6 @@ async def rota_cria_conta(nome: str, saldo_conta: float, user: user_dependency, 
 async def rota_cria_transacao(valor: float, tipo: int, categoria: str, user: user_dependency, db: Session = Depends(get_db), conta: int | None = None):
     result = await cria_transacao(valor, tipo, categoria, user, db, conta)
     return result
-
-"""criar a rota GET(“/categorias”)
-criar a rota GET(“/transacoes/receitas”)
-criar a rota GET(“/transacoes/despesas”)
-"""
 
 @app.get("/categorias")
 async def rota_categorias(user: user_dependency, db: Session = Depends(get_db)):
