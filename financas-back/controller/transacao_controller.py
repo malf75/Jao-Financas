@@ -5,7 +5,7 @@ from fastapi import HTTPException
 async def cria_transacao(valor, tipo, categoria, user, db:Session, conta):
     try:
         int(categoria)
-        return categoria_final
+        categoria_final = categoria
     except ValueError:
         query_igualdade = select(Categoria).where(Categoria.categoria == categoria, Categoria.usuario_id == user['id'])
         result_igualdade = db.exec(query_igualdade).first()
@@ -14,6 +14,7 @@ async def cria_transacao(valor, tipo, categoria, user, db:Session, conta):
         else:
             cria_categoria = Categoria(
                 usuario_id=user['id'],
+                tipo_id=tipo,
                 categoria=categoria
             )
             db.add(cria_categoria)
