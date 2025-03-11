@@ -1,6 +1,7 @@
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import RedirectResponse
 from sqlmodel import Session, select
 from starlette import status
 from database.db import get_db
@@ -10,6 +11,7 @@ from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
 from setup.settings import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_HOURS
 from pydantic import BaseModel
+from auth.m2f import *
 
 router = APIRouter(
     prefix='/auth',
@@ -33,10 +35,13 @@ db_dependency = Annotated[Session, Depends(get_db)]
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependency,
                       create_user_request: CreateUserRequest):
+    secret, qrcode = m2f(create_user_request.email)
     create_user_model = Usuario(
         nome=create_user_request.nome,
         email=create_user_request.email,
-        senha=bcrypt_context.hash(create_user_request.password)
+        senha=bcrypt_context.hash(create_user_request.password),
+        secret_key=secret,
+        qrcode=qrcode
     )
     query = select(Usuario).where(Usuario.email == create_user_model.email)
     consulta = db.exec(query).first()
@@ -54,17 +59,36 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Credenciais incorretas")
-    token = create_access_token(user.email, user.id, timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS))
+    if user.primeiro_login == True:
+        return RedirectResponse(f"/qr/{user.id}", status_code=status.HTTP_302_FOUND)
+    return RedirectResponse(f"/m2f/{user.id}", status_code=status.HTTP_302_FOUND)
 
-    return {"access_token": token, "token_type": "bearer"}
+@router.get("/qr/{id}")
+async def qrcode(id: int, db: db_dependency):
+    statement = select(Usuario).where(Usuario.id == id)
+    query = db.exec(statement).first()
+    return {"qrcode": query.qrcode}
+
+@router.post("/m2f/{id}")
+async def m2f_verification(id: str, otp: str, db: db_dependency):
+    statement = select(Usuario).where(Usuario.id == int(id))
+    query = db.exec(statement).first()
+    verify = m2f_verify(query.secret_key, otp)
+    if verify == True:
+        query.qrcode = ''
+        db.commit()
+        token = create_access_token(query.email, query.id, timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS))
+        return {"access_token": token, "token_type": "bearer", "expires_in": f"{ACCESS_TOKEN_EXPIRE_HOURS} Hours"}
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                             detail="OTP inválido")
 
 def authenticate_user(email: str, password: str, db):
     user = select(Usuario).where(Usuario.email == email)
     query = db.exec(user).first()
-    if not query:
-        return False
-    if not bcrypt_context.verify(password, query.senha):
-        return False
+    if not query or not bcrypt_context.verify(password, query.senha):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                             detail="Credenciais Incorretas")
     return query
 
 def create_access_token(email: str, user_id: int, expires_delta: timedelta):
@@ -85,3 +109,4 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Não pode verificar o usuário.")
+    

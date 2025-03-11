@@ -15,6 +15,9 @@ class Usuario(SQLModel, table=True):
     transacoes: List['Transacao'] = Relationship(back_populates="usuario", cascade_delete=True)
     conta_bancaria: List['ContaBancaria'] = Relationship(back_populates="usuario", cascade_delete=True)
     categoria: List['Categoria'] = Relationship(back_populates="usuario", cascade_delete=True)
+    secret_key: str = Field(nullable=False)
+    qrcode: str = Field(nullable=True)
+    primeiro_login: bool = Field(default=True)
 
 class ContaBancaria(SQLModel, table=True):
     __tablename__ = 'conta_bancaria'

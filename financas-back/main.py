@@ -2,11 +2,11 @@ from fastapi.responses import RedirectResponse
 from setup.settings import app
 from auth.auth import router, get_current_user
 from typing import Annotated
-from database.db import get_db
+from database.db import get_db, engine
 from controller.conta_bancaria_controller import *
 from controller.transacao_controller import *
 from controller.categoria_controller import *
-from sqlmodel import Session
+from sqlmodel import Session, SQLModel
 from fastapi import Depends
 
 app.include_router(router)
