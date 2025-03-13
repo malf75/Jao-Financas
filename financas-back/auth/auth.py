@@ -10,7 +10,7 @@ from passlib.context import CryptContext
 from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
 from setup.settings import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_HOURS
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from auth.m2f import *
 
 router = APIRouter(
@@ -23,7 +23,7 @@ oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/login')
 
 class CreateUserRequest(BaseModel):
     nome: str
-    email: str
+    email: EmailStr
     password: str
 
 class Token(BaseModel):
