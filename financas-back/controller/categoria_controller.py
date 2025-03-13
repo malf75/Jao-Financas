@@ -5,8 +5,11 @@ from fastapi import HTTPException
 
 
 async def retorna_categorias(user, db: Session):
-    query = select(Categoria).where(or_(Categoria.usuario_id == user['id'], Categoria.usuario_id.is_(None)))
-    categorias = db.exec(query).all()
-    if not categorias:
-        raise HTTPException(status_code=404, detail="Nenhuma categoria encontrada")
-    return categorias
+    try:
+        query = select(Categoria).where(or_(Categoria.usuario_id == user['id'], Categoria.usuario_id.is_(None)))
+        categorias = db.exec(query).all()
+        if not categorias:
+            raise HTTPException(status_code=404, detail="Nenhuma categoria encontrada")
+        return categorias
+    except Exception as e:
+        return {"message":f"Erro ao retornar categorias: {e}"}
